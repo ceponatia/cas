@@ -1,5 +1,7 @@
 # Cognitive Architecture Simulator
 
+<img width="1232" height="596" alt="image" src="https://github.com/user-attachments/assets/5fece279-7df5-4e3e-86ef-fc035b477e7b" />
+
 A comprehensive **multi-layered memory system simulator** for advanced AI chatbots, implementing a "best-of-breed" cognitive architecture combining ideas from Gemini, GPT, and Claude memory systems.
 
 ## 🧠 Architecture Overview
