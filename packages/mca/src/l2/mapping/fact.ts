@@ -1,7 +1,7 @@
 // Maps Neo4j fact nodes to FactNode interface
 import { FactNode } from '@cas/types';
 
-export function mapNodeToFact(node: any): FactNode {
+export function mapNodeToFact(node: { properties: { id: string; entity: string; attribute: string; current_value: string; importance_score: number; created_at: { toString(): string }; last_updated?: { toString(): string } } }): FactNode {
   const properties = node.properties;
   return {
     id: properties.id,

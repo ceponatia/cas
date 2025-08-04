@@ -1,6 +1,6 @@
-import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { FastifyInstance } from 'fastify';
 
-export async function memoryRoutes(fastify: FastifyInstance, _options: FastifyPluginOptions): Promise<void> {
+export async function memoryRoutes(fastify: FastifyInstance): Promise<void> {
   
   // Inspect current memory state
   fastify.get('/inspect', async (request, reply) => {

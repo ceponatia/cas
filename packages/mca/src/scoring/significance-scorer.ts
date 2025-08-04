@@ -161,7 +161,7 @@ export class SignificanceScorer implements ISignificanceScorer {
           const entities = this.findNearbyEntities(content, keyword);
           
           events.push({
-            type: eventType as any,
+            type: eventType as 'fact_assertion' | 'relationship_change' | 'emotion_change',
             confidence: 0.7, // Base confidence
             description: `Detected ${eventType} event: "${keyword}"`,
             entities_involved: entities
@@ -208,7 +208,7 @@ export class SignificanceScorer implements ISignificanceScorer {
     
     // Detect proper nouns (capitalized words)
     const properNouns = content.match(/\b[A-Z][a-z]+\b/g) || [];
-    properNouns.forEach((noun, index) => {
+    properNouns.forEach((noun) => {
       const startPos = content.indexOf(noun);
       entities.push({
         text: noun,
@@ -271,7 +271,7 @@ export class SignificanceScorer implements ISignificanceScorer {
     return [...new Set(properNouns)]; // Remove duplicates
   }
 
-  private estimateVADFromContent(content: string, entityName: string): VADState {
+  private estimateVADFromContent(content: string): VADState {
     const lowerContent = content.toLowerCase();
     let valence = 0;
     let arousal = 0;

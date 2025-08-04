@@ -23,7 +23,7 @@ export const UnderTheHoodPanel: React.FC<UnderTheHoodPanelProps> = ({ operations
     setAllOperations(operations);
   }, [operations]);
 
-  const getOperationIcon = (layer: string, _operation: string) => {
+  const getOperationIcon = (layer: string): JSX.Element => {
     switch (layer) {
       case 'L1':
         return <Clock className="w-4 h-4 text-blue-500" />;
@@ -36,7 +36,7 @@ export const UnderTheHoodPanel: React.FC<UnderTheHoodPanelProps> = ({ operations
     }
   };
 
-  const getOperationColor = (layer: string) => {
+  const getOperationColor = (layer: string): string => {
     switch (layer) {
       case 'L1':
         return 'bg-blue-50 border-blue-200';
@@ -49,11 +49,11 @@ export const UnderTheHoodPanel: React.FC<UnderTheHoodPanelProps> = ({ operations
     }
   };
 
-  const formatTimestamp = (timestamp: string) => {
+  const formatTimestamp = (timestamp: string): string => {
     return new Date(timestamp).toLocaleTimeString();
   };
 
-  const formatOperation = (operation: MemoryOperation) => {
+  const formatOperation = (operation: MemoryOperation): string => {
     const { layer, operation: op, details } = operation;
     
     switch (op) {
@@ -104,7 +104,7 @@ export const UnderTheHoodPanel: React.FC<UnderTheHoodPanelProps> = ({ operations
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-3">
-                    {getOperationIcon(operation.layer, operation.operation)}
+                    {getOperationIcon(operation.layer)}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
                         <span className={`text-xs font-medium px-2 py-1 rounded ${

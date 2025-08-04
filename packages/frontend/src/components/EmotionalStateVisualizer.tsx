@@ -41,7 +41,7 @@ export const EmotionalStateVisualizer: React.FC<EmotionalStateVisualizerProps> =
   const [isLoading, setIsLoading] = useState(false);
   const chartRef = useRef(null);
 
-  const fetchCharacters = async () => {
+  const fetchCharacters = async (): Promise<void> => {
     try {
       const response = await fetch('/api/memory/characters');
       if (response.ok) {
@@ -58,7 +58,7 @@ export const EmotionalStateVisualizer: React.FC<EmotionalStateVisualizerProps> =
     }
   };
 
-  const fetchEmotionalHistory = async (characterId: string) => {
+  const fetchEmotionalHistory = async (characterId: string): Promise<void> => {
     if (!characterId) return;
     
     setIsLoading(true);
@@ -77,12 +77,12 @@ export const EmotionalStateVisualizer: React.FC<EmotionalStateVisualizerProps> =
   };
 
   useEffect(() => {
-    fetchCharacters();
+    void fetchCharacters();
   }, []);
 
   useEffect(() => {
     if (selectedCharacter) {
-      fetchEmotionalHistory(selectedCharacter);
+      void fetchEmotionalHistory(selectedCharacter);
     }
   }, [selectedCharacter]);
 
@@ -172,7 +172,7 @@ export const EmotionalStateVisualizer: React.FC<EmotionalStateVisualizerProps> =
     ]
   };
 
-  const formatVADValue = (value: number, dimension: 'valence' | 'arousal' | 'dominance') => {
+  const formatVADValue = (value: number, dimension: 'valence' | 'arousal' | 'dominance'): string => {
     if (dimension === 'valence') {
       if (value > 0.3) return 'Positive';
       if (value < -0.3) return 'Negative';
@@ -200,9 +200,9 @@ export const EmotionalStateVisualizer: React.FC<EmotionalStateVisualizerProps> =
           </h2>
           <button
             onClick={() => {
-              fetchCharacters();
+              void fetchCharacters();
               if (selectedCharacter) {
-                fetchEmotionalHistory(selectedCharacter);
+                void fetchEmotionalHistory(selectedCharacter);
               }
             }}
             disabled={isLoading}

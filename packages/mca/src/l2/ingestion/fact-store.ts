@@ -10,7 +10,7 @@ export interface FactWriteResult {
 
 export async function processFact(
   tx: ManagedTransaction, 
-  event: any, 
+  event: { entities_involved: string[]; description: string; confidence: number }, 
   turn: WorkingMemoryTurn, 
   sessionId: string
 ): Promise<FactWriteResult> {

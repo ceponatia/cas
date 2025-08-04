@@ -1,12 +1,10 @@
 // L2 relevance scoring and token estimation utilities
 import { Character, FactNode, RelationshipEdge } from '@cas/types';
-import { MemoryRetrievalQuery } from '@cas/types';
 
 export function calculateL2RelevanceScore(
   characters: Character[], 
   facts: FactNode[], 
-  relationships: RelationshipEdge[], 
-  query: MemoryRetrievalQuery
+  relationships: RelationshipEdge[]
 ): number {
   const totalItems = characters.length + facts.length + relationships.length;
   if (totalItems === 0) return 0;

@@ -42,7 +42,7 @@ export const MemoryInspectorPanel: React.FC<MemoryInspectorPanelProps> = ({ sess
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'L1' | 'L2' | 'L3'>('L1');
 
-  const fetchMemoryState = async () => {
+  const fetchMemoryState = async (): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/memory/inspect');
@@ -60,13 +60,13 @@ export const MemoryInspectorPanel: React.FC<MemoryInspectorPanelProps> = ({ sess
   };
 
   useEffect(() => {
-    fetchMemoryState();
+    void fetchMemoryState();
     // Refresh every 5 seconds
-    const interval = setInterval(fetchMemoryState, 5000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => { void fetchMemoryState(); }, 5000);
+    return (): void => clearInterval(interval);
   }, [sessionId]);
 
-  const renderL1Inspector = () => {
+  const renderL1Inspector = (): JSX.Element | null => {
     const l1 = memoryState?.l1_working_memory;
     if (!l1) return null;
 
@@ -125,7 +125,7 @@ export const MemoryInspectorPanel: React.FC<MemoryInspectorPanelProps> = ({ sess
     );
   };
 
-  const renderL2Inspector = () => {
+  const renderL2Inspector = (): JSX.Element | null => {
     const l2 = memoryState?.l2_graph_memory;
     if (!l2) return null;
 
@@ -173,7 +173,7 @@ export const MemoryInspectorPanel: React.FC<MemoryInspectorPanelProps> = ({ sess
     );
   };
 
-  const renderL3Inspector = () => {
+  const renderL3Inspector = (): JSX.Element | null => {
     const l3 = memoryState?.l3_vector_memory;
     if (!l3) return null;
 
@@ -295,7 +295,7 @@ export const MemoryInspectorPanel: React.FC<MemoryInspectorPanelProps> = ({ sess
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
+                onClick={() => setActiveTab(tab.key as 'L1' | 'L2' | 'L3')}
                 className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                   activeTab === tab.key
                     ? `border-${tab.color}-500 text-${tab.color}-600`

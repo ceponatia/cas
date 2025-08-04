@@ -180,7 +180,7 @@ export class L1WorkingMemory {
   /**
    * Inspect current state
    */
-  async inspect(): Promise<any> {
+  async inspect(): Promise<unknown> {
     const sessionData = [];
     
     for (const [sessionId, memory] of this.sessions) {
@@ -206,7 +206,7 @@ export class L1WorkingMemory {
   /**
    * Get statistics
    */
-  async getStatistics(): Promise<any> {
+  async getStatistics(): Promise<{ total_sessions: number; total_turns: number; total_tokens: number; avg_turns_per_session: number; avg_tokens_per_session: number }> {
     let totalTurns = 0;
     let totalTokens = 0;
     

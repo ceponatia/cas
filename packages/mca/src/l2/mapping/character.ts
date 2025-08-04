@@ -1,7 +1,7 @@
 // Maps Neo4j character nodes to Character interface
 import { Character } from '@cas/types';
 
-export function mapNodeToCharacter(node: any): Character {
+export function mapNodeToCharacter(node: { properties: { id: string; name: string; emotional_state?: { valence: number; arousal: number; dominance: number }; created_at: { toString(): string }; last_updated?: { toString(): string } } }): Character {
   const properties = node.properties;
   return {
     id: properties.id,

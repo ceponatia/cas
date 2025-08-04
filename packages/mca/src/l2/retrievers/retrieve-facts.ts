@@ -20,7 +20,7 @@ export async function retrieveRelevantFacts(
 
   const result = await tx.run(cypherQuery, { queryText: query.query_text });
   
-  return result.records.map((record: any) => {
+  return result.records.map((record: { get(key: string): unknown }) => {
     const node = record.get('f');
     return mapNodeToFact(node);
   });

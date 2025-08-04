@@ -160,7 +160,7 @@ export class DatabaseManager implements IDatabaseManager {
       await session.run('RETURN 1');
       await session.close();
       return true;
-    } catch (_error) {
+    } catch {
       return false;
     }
   }

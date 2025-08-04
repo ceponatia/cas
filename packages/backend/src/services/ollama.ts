@@ -12,7 +12,7 @@ export class OllamaService {
     // Initialize tokenizer for token counting
     try {
       this.tokenizer = encoding_for_model('gpt-3.5-turbo'); // Close approximation for Mistral
-    } catch (_error) {
+    } catch {
       console.warn('Failed to initialize tokenizer, using fallback estimation');
       this.tokenizer = null;
     }
@@ -108,7 +108,7 @@ Response:`;
       try {
         const tokens = this.tokenizer.encode(text);
         return tokens.length;
-      } catch (_error) {
+      } catch {
         console.warn('Tokenizer error, using fallback estimation');
       }
     }

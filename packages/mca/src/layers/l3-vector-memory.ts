@@ -4,7 +4,6 @@ import {
   L3RetrievalResult,
   MemoryRetrievalQuery,
   VectorMemoryFragment,
-  VectorMetadata,
   EventDetectionResult,
   MemoryOperation
 } from '@cas/types';
@@ -264,7 +263,7 @@ export class L3VectorMemory {
   /**
    * Public API methods
    */
-  async inspect(): Promise<any> {
+  async inspect(): Promise<unknown> {
     const faissIndex = this.dbManager.getFaissIndex();
     
     const contentTypes = {
@@ -305,7 +304,7 @@ export class L3VectorMemory {
     };
   }
 
-  async getStatistics(): Promise<any> {
+  async getStatistics(): Promise<unknown> {
     return await this.inspect();
   }
 

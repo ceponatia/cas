@@ -71,7 +71,7 @@ export const PromptInspectorPanel: React.FC<PromptInspectorPanelProps> = ({
     setPromptBreakdown(breakdown);
   }, [messages, fusionWeights]);
 
-  const toggleSection = (section: string) => {
+  const toggleSection = (section: string): void => {
     const newExpanded = new Set(expandedSections);
     if (newExpanded.has(section)) {
       newExpanded.delete(section);
@@ -81,7 +81,7 @@ export const PromptInspectorPanel: React.FC<PromptInspectorPanelProps> = ({
     setExpandedSections(newExpanded);
   };
 
-  const copyFullPrompt = () => {
+  const copyFullPrompt = (): void => {
     if (!promptBreakdown) return;
 
     const fullPrompt = [
@@ -101,10 +101,10 @@ export const PromptInspectorPanel: React.FC<PromptInspectorPanelProps> = ({
       "Please respond naturally, incorporating relevant information from the memory context above."
     ].join('\n');
 
-    navigator.clipboard.writeText(fullPrompt);
+    void navigator.clipboard.writeText(fullPrompt);
   };
 
-  const getSectionColor = (section: string) => {
+  const getSectionColor = (section: string): string => {
     switch (section) {
       case 'system':
         return 'gray';
@@ -121,7 +121,7 @@ export const PromptInspectorPanel: React.FC<PromptInspectorPanelProps> = ({
     }
   };
 
-  const getSectionWeight = (section: string) => {
+  const getSectionWeight = (section: string): number => {
     switch (section) {
       case 'working_memory':
         return fusionWeights.w_L1;
@@ -134,7 +134,7 @@ export const PromptInspectorPanel: React.FC<PromptInspectorPanelProps> = ({
     }
   };
 
-  const renderSection = (sectionKey: string, title: string, content: string, tokens: number) => {
+  const renderSection = (sectionKey: string, title: string, content: string, tokens: number): JSX.Element => {
     const isExpanded = expandedSections.has(sectionKey);
     const color = getSectionColor(sectionKey);
     const weight = getSectionWeight(sectionKey);

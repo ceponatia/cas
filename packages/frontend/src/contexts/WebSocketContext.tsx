@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 
 interface WebSocketMessage {
   type: string;
-  data?: any;
+  data?: unknown;
   timestamp: string;
   message?: string;
 }
@@ -10,7 +10,7 @@ interface WebSocketMessage {
 interface WebSocketContextType {
   isConnected: boolean;
   lastMessage: WebSocketMessage | null;
-  sendMessage: (message: any) => void;
+  sendMessage: (message: unknown) => void;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -28,13 +28,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     const wsUrl = `ws://${window.location.hostname}:3001/ws/updates`;
     const ws = new WebSocket(wsUrl);
 
-    ws.onopen = () => {
+    ws.onopen = (): void => {
       console.log('WebSocket connected');
       setIsConnected(true);
       setSocket(ws);
     };
 
-    ws.onmessage = (event) => {
+    ws.onmessage = (event): void => {
       try {
         const message = JSON.parse(event.data);
         setLastMessage(message);
@@ -43,25 +43,25 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       }
     };
 
-    ws.onclose = () => {
+    ws.onclose = (): void => {
       console.log('WebSocket disconnected');
       setIsConnected(false);
       setSocket(null);
     };
 
-    ws.onerror = (error) => {
+    ws.onerror = (error): void => {
       console.error('WebSocket error:', error);
     };
 
     // Cleanup on unmount
-    return () => {
+    return (): void => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.close();
       }
     };
   }, []);
 
-  const sendMessage = (message: any) => {
+  const sendMessage = (message: unknown): void => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify(message));
     } else {

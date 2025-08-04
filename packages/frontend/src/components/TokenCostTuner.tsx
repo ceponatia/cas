@@ -24,7 +24,7 @@ export const TokenCostTuner: React.FC<TokenCostTunerProps> = ({
 
   // Estimate token cost when weights change
   useEffect(() => {
-    const estimateTokens = async () => {
+    const estimateTokens = async (): Promise<void> => {
       setIsEstimating(true);
       try {
         const response = await fetch('/api/config/estimate-tokens', {
@@ -50,10 +50,10 @@ export const TokenCostTuner: React.FC<TokenCostTunerProps> = ({
       }
     };
 
-    estimateTokens();
+    void estimateTokens();
   }, [localWeights, sessionId]);
 
-  const handleWeightChange = (layer: keyof WeightedMemoryFusion, value: number) => {
+  const handleWeightChange = (layer: keyof WeightedMemoryFusion, value: number): void => {
     const newWeights = { ...localWeights, [layer]: value };
     
     // Auto-normalize weights to sum to 1.0
@@ -68,7 +68,7 @@ export const TokenCostTuner: React.FC<TokenCostTunerProps> = ({
     onWeightsChange(newWeights);
   };
 
-  const handlePreset = (preset: 'balanced' | 'recent' | 'factual' | 'semantic') => {
+  const handlePreset = (preset: 'balanced' | 'recent' | 'factual' | 'semantic'): void => {
     let newWeights: WeightedMemoryFusion;
     
     switch (preset) {
@@ -127,7 +127,7 @@ export const TokenCostTuner: React.FC<TokenCostTunerProps> = ({
           ].map(preset => (
             <button
               key={preset.key}
-              onClick={() => handlePreset(preset.key as any)}
+              onClick={() => handlePreset(preset.key as 'balanced' | 'recent' | 'factual' | 'semantic')}
               className="px-3 py-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               title={preset.desc}
             >

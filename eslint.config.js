@@ -1,7 +1,12 @@
-const eslint = require('@eslint/js');
-const tseslint = require('typescript-eslint');
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-module.exports = tseslint.config(
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -22,12 +27,23 @@ module.exports = tseslint.config(
   {
     files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
     ...tseslint.configs.recommended[0],
+    languageOptions: {
+      globals: {
+        module: 'readonly',
+        require: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        process: 'readonly',
+        global: 'readonly',
+      },
+    },
   },
   {
     ignores: [
       '**/dist/',
       '**/node_modules/',
       '**/build/',
+      '**/vite.config.ts',
     ],
   }
 );

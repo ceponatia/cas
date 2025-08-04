@@ -49,7 +49,6 @@ export class MemoryController {
     context: WorkingMemoryTurn[],
     sessionId: string
   ): Promise<MemoryIngestionResult> {
-    const startTime = Date.now();
     const operations = [];
     
     try {
@@ -72,7 +71,7 @@ export class MemoryController {
       // 3. If significant enough, process for L2 and L3
       let factsUpdated: string[] = [];
       let relationshipsModified: string[] = [];
-      let emotionalChanges = eventDetection.emotional_changes;
+      const emotionalChanges = eventDetection.emotional_changes;
 
       if (eventDetection.is_significant) {
         // Process for L2 (graph memory)
@@ -119,7 +118,6 @@ export class MemoryController {
    * READ PATH: Retrieve relevant context using weighted memory fusion
    */
   async retrieveRelevantContext(query: MemoryRetrievalQuery): Promise<MemoryRetrievalResult> {
-    const startTime = Date.now();
     
     try {
       // Retrieve from each layer in parallel

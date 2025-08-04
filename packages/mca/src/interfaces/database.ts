@@ -13,7 +13,7 @@ export interface IDatabaseManager {
   /**
    * Get FAISS index for vector operations
    */
-  getFaissIndex(): any; // Would be FaissNode in production
+  getFaissIndex(): unknown; // Would be FaissNode in production
   
   /**
    * Save FAISS index to disk

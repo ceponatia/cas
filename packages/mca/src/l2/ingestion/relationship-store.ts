@@ -10,7 +10,7 @@ export interface RelationshipWriteResult {
 
 export async function processRelationship(
   tx: ManagedTransaction, 
-  event: any, 
+  event: { entities_involved: string[]; type: string; confidence: number }, 
   turn: WorkingMemoryTurn, 
   sessionId: string
 ): Promise<RelationshipWriteResult> {

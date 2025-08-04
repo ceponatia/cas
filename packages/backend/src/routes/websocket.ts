@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import WebSocket from 'ws';
 import { webSocketMessageSchema } from '@cas/types';
 
@@ -9,7 +9,7 @@ declare module 'fastify' {
   }
 }
 
-export async function websocketRoutes(fastify: FastifyInstance, _options: FastifyPluginOptions): Promise<void> {
+export async function websocketRoutes(fastify: FastifyInstance): Promise<void> {
   // Initialize WebSocket clients set
   if (!fastify.websocketClients) {
     fastify.websocketClients = new Set<WebSocket>();
@@ -17,7 +17,7 @@ export async function websocketRoutes(fastify: FastifyInstance, _options: Fastif
 
   // WebSocket endpoint for real-time updates
   fastify.register(async function (fastify) {
-    fastify.get('/updates', { websocket: true }, (connection, _req) => {
+    fastify.get('/updates', { websocket: true }, (connection) => {
       const socket = connection;
       
       // Add client to the set

@@ -1,10 +1,10 @@
-import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { WeightedMemoryFusion } from '@cas/types';
 
-export async function configRoutes(fastify: FastifyInstance, _options: FastifyPluginOptions): Promise<void> {
+export async function configRoutes(fastify: FastifyInstance): Promise<void> {
   
   // Get current MCA configuration
-  fastify.get('/', async (_request, _reply) => {
+  fastify.get('/', async () => {
     return fastify.mca.config;
   });
 

@@ -5,13 +5,11 @@ import {
   MemoryRetrievalQuery,
   Character,
   FactNode,
-  RelationshipEdge,
-  VADState,
   EventDetectionResult,
   MemoryOperation
 } from '@cas/types';
 // DatabaseManager passed as parameter
-import { Session, ManagedTransaction, Driver } from 'neo4j-driver';
+import { ManagedTransaction, Driver } from 'neo4j-driver';
 import { IDatabaseManager } from '../interfaces/database.js';
 
 // Import extracted modules
@@ -84,17 +82,19 @@ export class L2GraphMemory {
         // 2. Process detected events for fact extraction
         for (const event of eventDetection.detected_events) {
           switch (event.type) {
-            case 'fact_assertion':
+            case 'fact_assertion': {
               const factResult = await processFact(tx, event, turn, sessionId);
               operations.push(...factResult.operations);
               factsUpdated.push(...factResult.fact_ids);
               break;
+            }
               
-            case 'relationship_change':
+            case 'relationship_change': {
               const relResult = await processRelationship(tx, event, turn, sessionId);
               operations.push(...relResult.operations);
               relationshipsModified.push(...relResult.relationship_ids);
               break;
+            }
           }
         }
 
@@ -165,7 +165,7 @@ export class L2GraphMemory {
     try {
       return await session.executeRead(async (tx: ManagedTransaction) => {
         const result = await tx.run('MATCH (c:Character) RETURN c ORDER BY c.name');
-        return result.records.map((record: any) => {
+        return result.records.map((record: { get(key: string): unknown }) => {
           const node = record.get('c');
           return mapNodeToCharacter(node);
         });
@@ -175,7 +175,7 @@ export class L2GraphMemory {
     }
   }
 
-  async getEmotionalHistory(characterId: string, limit: number): Promise<any[]> {
+  async getEmotionalHistory(): Promise<unknown[]> {
     // TODO: Implement emotional history tracking
     return [];
   }

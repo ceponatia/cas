@@ -1,9 +1,9 @@
-import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { ChatRequest, ChatResponse } from '@cas/types';
 import { OllamaService } from '../services/ollama.js';
 import { randomUUID } from 'crypto';
 
-export async function chatRoutes(fastify: FastifyInstance, _options: FastifyPluginOptions): Promise<void> {
+export async function chatRoutes(fastify: FastifyInstance): Promise<void> {
   const ollama = new OllamaService();
 
   // Send a chat message
