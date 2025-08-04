@@ -28,6 +28,13 @@
       "@cas/utils/*": ["./packages/utils/src/*"]
     }
   },
+  "references": [
+    { "path": "./packages/backend" },
+    { "path": "./packages/frontend" },
+    { "path": "./packages/mca" },
+    { "path": "./packages/types" },
+    { "path": "./packages/utils" }
+  ],
   "include": [],
   "exclude": ["node_modules", "dist", "build"]
 }

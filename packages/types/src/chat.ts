@@ -1,4 +1,4 @@
-import { VADState, TokenCost } from './common.js';
+import { VADState, TokenCost, MemoryOperation } from './common.js';
 import { MemoryRetrievalResult } from './memory.js';
 
 export interface ChatMessage {
@@ -47,15 +47,6 @@ export interface ChatResponse {
   };
 }
 
-export interface MemoryOperation {
-  id: string;
-  type: 'read' | 'write' | 'update' | 'delete';
-  layer: 'L1' | 'L2' | 'L3';
-  operation: string;
-  timestamp: string;
-  duration_ms: number;
-  details?: any;
-}
 
 export interface VADStateChange {
   character_id: string;

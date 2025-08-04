@@ -1,6 +1,5 @@
-import { VADState } from './common.js';
+import { VADState, MemoryOperation } from './common.js';
 import { WorkingMemoryTurn } from './memory.js';
-import { MemoryOperation } from './chat.js';
 
 // Memory Controller Agent Core Types
 export interface MCAConfig {
@@ -87,6 +86,7 @@ export interface MemoryRetrievalQuery {
   max_tokens?: number;
   min_relevance_threshold?: number;
 }
+
 
 export interface ConflictResolutionPolicy {
   strategy: 'latest_wins' | 'highest_confidence' | 'versioned_history' | 'user_prompt';

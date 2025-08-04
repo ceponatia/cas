@@ -3,6 +3,7 @@ import neo4j, { Driver, Session } from 'neo4j-driver';
 import { createClient, RedisClientType } from 'redis';
 import { promises as fs } from 'fs';
 import { dirname } from 'path';
+import { IDatabaseManager } from '@cas/mca/interfaces/database.js';
 
 interface Neo4jConfig {
   uri: string;
@@ -25,7 +26,7 @@ interface DatabaseConfig {
   redis?: RedisConfig;
 }
 
-export class DatabaseManager {
+export class DatabaseManager implements IDatabaseManager {
   private neo4jDriver: Driver | null = null;
   private faissIndex: any | null = null; // FaissNode type
   public redis: RedisClientType | null = null;
@@ -166,6 +167,13 @@ export class DatabaseManager {
       throw new Error('Neo4j driver not initialized');
     }
     return this.neo4jDriver.session();
+  }
+
+  getDriver(): Driver {
+    if (!this.neo4jDriver) {
+      throw new Error('Neo4j driver not initialized');
+    }
+    return this.neo4jDriver;
   }
 
   getFaissIndex(): any {

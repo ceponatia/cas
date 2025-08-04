@@ -16,6 +16,7 @@ import { L2GraphMemory } from './layers/l2-graph-memory.js';
 import { L3VectorMemory } from './layers/l3-vector-memory.js';
 import { SignificanceScorer } from './scoring/significance-scorer.js';
 import { WeightedMemoryFusion as MemoryFusion } from './fusion/weighted-fusion.js';
+import { IDatabaseManager } from './interfaces/database.js';
 
 export class MemoryController {
   private l1: L1WorkingMemory;
@@ -25,7 +26,7 @@ export class MemoryController {
   private fusion: MemoryFusion;
   
   constructor(
-    private dbManager: any, // DatabaseManager type
+    private dbManager: IDatabaseManager,
     public config: MCAConfig
   ) {
     this.l1 = new L1WorkingMemory(config);

@@ -31,3 +31,13 @@ export interface TokenCost {
   l3_tokens: number;
   estimated_cost: number;
 }
+
+export interface MemoryOperation {
+  id: string;
+  type: 'read' | 'write' | 'update' | 'delete';
+  layer: 'L1' | 'L2' | 'L3';
+  operation: string;
+  timestamp: string;
+  duration_ms: number;
+  details: Record<string, any>;
+}

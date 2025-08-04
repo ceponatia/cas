@@ -1,4 +1,4 @@
-import { VADState, Timestamp, AccessMetrics, ImportanceScore } from './common.js';
+import { VADState, Timestamp, AccessMetrics, ImportanceScore, MemoryOperation } from './common.js';
 
 // L1 Working Memory Types
 export interface WorkingMemoryTurn {
@@ -108,3 +108,15 @@ export interface MemoryRetrievalResult {
   final_score: number;
   total_tokens: number;
 }
+
+// L2 Write Result Interfaces
+export interface FactWriteResult {
+  operations: MemoryOperation[];
+  fact_ids: string[];
+}
+
+export interface RelationshipWriteResult {
+  operations: MemoryOperation[];
+  relationship_ids: string[];
+}
+

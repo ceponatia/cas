@@ -10,6 +10,7 @@ import {
 } from '@cas/types';
 // DatabaseManager passed as parameter
 // import { FaissNode } from 'faiss-node';
+import { IDatabaseManager } from '../interfaces/database.js';
 
 /**
  * L3 Vector Memory - Semantic Archive using FAISS
@@ -20,7 +21,7 @@ export class L3VectorMemory {
   private nextIndex = 0;
 
   constructor(
-    private dbManager: any, // DatabaseManager type
+    private dbManager: IDatabaseManager,
     private config: MCAConfig
   ) {}
 
