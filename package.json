@@ -1,0 +1,22 @@
+{
+  "name": "cognitive-architecture-simulator",
+  "version": "1.0.0",
+  "description": "Cognitive Architecture Simulator - A multi-layered memory system for chatbots",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev:backend": "pnpm --filter @cas/backend dev",
+    "dev:frontend": "pnpm --filter @cas/frontend dev",
+    "dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\"",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "keywords": ["ai", "memory", "chatbot", "cognitive-architecture"],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.13.1",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.0.0"
+  }
+}

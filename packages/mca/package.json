@@ -1,0 +1,28 @@
+{
+  "name": "@cas/mca",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@cas/types": "workspace:*",
+    "@cas/utils": "workspace:*",
+    "neo4j-driver": "^5.19.0",
+    "faiss-node": "^0.5.1",
+    "tiktoken": "^1.0.15"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.11.24"
+  }
+}

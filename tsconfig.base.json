@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@cas/types": ["./packages/types/src"],
+      "@cas/types/*": ["./packages/types/src/*"],
+      "@cas/backend": ["./packages/backend/src"],
+      "@cas/backend/*": ["./packages/backend/src/*"],
+      "@cas/frontend": ["./packages/frontend/src"],
+      "@cas/frontend/*": ["./packages/frontend/src/*"],
+      "@cas/mca": ["./packages/mca/src"],
+      "@cas/mca/*": ["./packages/mca/src/*"],
+      "@cas/utils": ["./packages/utils/src"],
+      "@cas/utils/*": ["./packages/utils/src/*"]
+    }
+  },
+  "include": [],
+  "exclude": ["node_modules", "dist", "build"]
+}
