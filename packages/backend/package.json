@@ -23,7 +23,8 @@
     "ollama": "^0.5.9",
     "redis": "^5.7.0",
     "tiktoken": "^1.0.15",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "zod": "^4.0.14"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",

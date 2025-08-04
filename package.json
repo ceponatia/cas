@@ -9,7 +9,8 @@
     "dev:frontend": "pnpm --filter @cas/frontend dev",
     "dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\"",
     "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down"
+    "docker:down": "docker-compose down",
+    "generate:zod": "pnpm --filter @cas/types generate:zod"
   },
   "keywords": ["ai", "memory", "chatbot", "cognitive-architecture"],
   "author": "",

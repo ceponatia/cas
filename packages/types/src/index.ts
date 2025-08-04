@@ -2,3 +2,7 @@ export * from './memory.js';
 export * from './chat.js';
 export * from './mca.js';
 export * from './common.js';
+export * from './zod/memory.zod.js';
+export * from './zod/chat.zod.js';
+export * from './zod/mca.zod.js';
+export * from './zod/common.zod.js';
