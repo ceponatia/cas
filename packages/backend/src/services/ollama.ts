@@ -1,24 +1,24 @@
 import { Ollama } from 'ollama';
 import { config } from '../config.js';
-import { MemoryRetrievalResult } from '@cas/types';
-import { encoding_for_model } from 'tiktoken';
+import { MemoryRetrievalResult, LLMResponse } from '@cas/types';
+import { encoding_for_model, Tiktoken } from 'tiktoken';
 
 export class OllamaService {
   private ollama: Ollama;
-  private tokenizer: any;
+  private tokenizer: Tiktoken | null;
 
   constructor() {
     this.ollama = new Ollama({ host: config.OLLAMA_BASE_URL });
     // Initialize tokenizer for token counting
     try {
       this.tokenizer = encoding_for_model('gpt-3.5-turbo'); // Close approximation for Mistral
-    } catch (error) {
+    } catch (_error) {
       console.warn('Failed to initialize tokenizer, using fallback estimation');
       this.tokenizer = null;
     }
   }
 
-  async generateResponse(userMessage: string, memoryContext: MemoryRetrievalResult) {
+  async generateResponse(userMessage: string, memoryContext: MemoryRetrievalResult): Promise<LLMResponse> {
     const prompt = this.constructPrompt(userMessage, memoryContext);
     
     try {
@@ -34,15 +34,16 @@ export class OllamaService {
       });
 
       return {
-        content: response.response,
-        tokens: await this.countTokens(response.response),
-        model_info: {
-          model: config.OLLAMA_MODEL,
-          total_duration: response.total_duration,
-          load_duration: response.load_duration,
-          prompt_eval_count: response.prompt_eval_count,
-          eval_count: response.eval_count
-        }
+        response: response.response,
+        model: config.OLLAMA_MODEL,
+        created_at: new Date().toISOString(),
+        done: true,
+        total_duration: response.total_duration,
+        load_duration: response.load_duration,
+        prompt_eval_count: response.prompt_eval_count,
+        prompt_eval_duration: response.prompt_eval_duration,
+        eval_count: response.eval_count,
+        eval_duration: response.eval_duration
       };
     } catch (error) {
       console.error('Ollama generation error:', error);
@@ -107,7 +108,7 @@ Response:`;
       try {
         const tokens = this.tokenizer.encode(text);
         return tokens.length;
-      } catch (error) {
+      } catch (_error) {
         console.warn('Tokenizer error, using fallback estimation');
       }
     }
@@ -129,7 +130,7 @@ Response:`;
   async getAvailableModels(): Promise<string[]> {
     try {
       const response = await this.ollama.list();
-      return response.models.map((model: any) => model.name);
+      return response.models.map((model: { name: string }) => model.name);
     } catch (error) {
       console.error('Failed to fetch available models:', error);
       return [];

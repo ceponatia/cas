@@ -7,7 +7,7 @@ import { TokenCostTuner } from './components/TokenCostTuner';
 import { WebSocketProvider } from './contexts/WebSocketContext';
 import { WeightedMemoryFusion, ChatMessage, MemoryOperation } from '@cas/types';
 
-function App() {
+function App(): JSX.Element {
   const [fusionWeights, setFusionWeights] = useState<WeightedMemoryFusion>({
     w_L1: 0.4,
     w_L2: 0.4,
@@ -23,7 +23,7 @@ function App() {
     setCurrentSessionId(crypto.randomUUID());
   }, []);
 
-  const handleNewMessage = (message: ChatMessage) => {
+  const handleNewMessage = (message: ChatMessage): void => {
     setMessages(prev => [...prev, message]);
     
     // Add memory operations from message metadata
@@ -32,7 +32,7 @@ function App() {
     }
   };
 
-  const handleFusionWeightsChange = (newWeights: WeightedMemoryFusion) => {
+  const handleFusionWeightsChange = (newWeights: WeightedMemoryFusion): void => {
     setFusionWeights(newWeights);
   };
 

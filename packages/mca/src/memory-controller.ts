@@ -8,7 +8,12 @@ import {
   ChatSession,
   Character,
   FactNode,
-  TokenCost
+  TokenCost,
+  SearchOptions,
+  MemoryInspection,
+  EmotionalHistoryEntry,
+  MemoryStatistics,
+  PruneResult
 } from '@cas/types';
 // DatabaseManager will be passed as a parameter
 import { L1WorkingMemory } from './layers/l1-working-memory.js';
@@ -173,7 +178,7 @@ export class MemoryController {
     return this.l2.getAllCharacters();
   }
 
-  async getCharacterEmotionalHistory(characterId: string, limit: number): Promise<any[]> {
+  async getCharacterEmotionalHistory(characterId: string, limit: number): Promise<EmotionalHistoryEntry[]> {
     return this.l2.getEmotionalHistory(characterId, limit);
   }
 
@@ -181,7 +186,7 @@ export class MemoryController {
     return this.l2.getFactWithHistory(factId);
   }
 
-  async searchMemory(query: string, options: any): Promise<any> {
+  async searchMemory(query: string, options: SearchOptions): Promise<MemoryRetrievalResult> {
     // Simple search across all layers
     const searchQuery: MemoryRetrievalQuery = {
       query_text: query,
@@ -193,7 +198,7 @@ export class MemoryController {
     return await this.retrieveRelevantContext(searchQuery);
   }
 
-  async inspectMemoryState(): Promise<any> {
+  async inspectMemoryState(): Promise<MemoryInspection> {
     const [l1State, l2State, l3State] = await Promise.all([
       this.l1.inspect(),
       this.l2.inspect(),
@@ -209,9 +214,9 @@ export class MemoryController {
     };
   }
 
-  async getMemoryStatistics(): Promise<any> {
+  async getMemoryStatistics(): Promise<MemoryStatistics> {
     const [l1Stats, l2Stats, l3Stats] = await Promise.all([
-      this.l1.getStatistics(),
+      this.l1.getStatistics(),  
       this.l2.getStatistics(),
       this.l3.getStatistics()
     ]);
@@ -225,7 +230,7 @@ export class MemoryController {
     };
   }
 
-  async pruneMemory(): Promise<any> {
+  async pruneMemory(): Promise<PruneResult> {
     // Will be implemented in Phase 3
     return { message: 'Pruning not yet implemented' };
   }

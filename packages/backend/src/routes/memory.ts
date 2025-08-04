@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 
-export async function memoryRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
+export async function memoryRoutes(fastify: FastifyInstance, _options: FastifyPluginOptions): Promise<void> {
   
   // Inspect current memory state
   fastify.get('/inspect', async (request, reply) => {
@@ -25,12 +25,11 @@ export async function memoryRoutes(fastify: FastifyInstance, options: FastifyPlu
     } 
   }>('/search', async (request, reply) => {
     try {
-      const { query, layers = ['L1', 'L2', 'L3'], limit = 10 } = request.body;
+      const { query, limit = 10 } = request.body;
       
       const results = await fastify.mca.searchMemory(query, {
-        layers,
         limit,
-        min_relevance_threshold: 0.1
+        threshold: 0.1
       });
       
       return results;

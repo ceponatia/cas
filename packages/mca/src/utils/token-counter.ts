@@ -23,7 +23,7 @@ export class TokenCounter {
   /**
    * Estimate tokens for structured data objects
    */
-  static estimateObjectTokens(obj: any): number {
+  static estimateObjectTokens(obj: unknown): number {
     if (typeof obj === 'string') {
       return this.estimateTokens(obj);
     }

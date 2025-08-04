@@ -6,6 +6,6 @@ declare module 'fastify' {
     db: DatabaseManager;
     mca: MemoryController;
     websocketClients?: Set<WebSocket>;
-    broadcastToClients?: (data: any) => void;
+    broadcastToClients?: (data: unknown) => void;
   }
 }

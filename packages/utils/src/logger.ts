@@ -15,25 +15,25 @@ export class Logger {
     Logger.currentLevel = Logger.levels[level];
   }
 
-  static debug(message: string, ...args: any[]): void {
+  static debug(message: string, ...args: unknown[]): void {
     if (Logger.currentLevel <= Logger.levels.debug) {
       console.debug(`[DEBUG] ${message}`, ...args);
     }
   }
 
-  static info(message: string, ...args: any[]): void {
+  static info(message: string, ...args: unknown[]): void {
     if (Logger.currentLevel <= Logger.levels.info) {
       console.info(`[INFO] ${message}`, ...args);
     }
   }
 
-  static warn(message: string, ...args: any[]): void {
+  static warn(message: string, ...args: unknown[]): void {
     if (Logger.currentLevel <= Logger.levels.warn) {
       console.warn(`[WARN] ${message}`, ...args);
     }
   }
 
-  static error(message: string, ...args: any[]): void {
+  static error(message: string, ...args: unknown[]): void {
     if (Logger.currentLevel <= Logger.levels.error) {
       console.error(`[ERROR] ${message}`, ...args);
     }

@@ -6,6 +6,7 @@ import {
   timestampSchema,
   accessMetricsSchema,
   importanceScoreSchema,
+  memoryOperationSchema,
 } from "./common.zod";
 
 export const workingMemoryTurnSchema = z.object({
@@ -116,4 +117,14 @@ export const memoryRetrievalResultSchema = z.object({
   }),
   final_score: z.number(),
   total_tokens: z.number(),
+});
+
+export const factWriteResultSchema = z.object({
+  operations: z.array(memoryOperationSchema),
+  fact_ids: z.array(z.string()),
+});
+
+export const relationshipWriteResultSchema = z.object({
+  operations: z.array(memoryOperationSchema),
+  relationship_ids: z.array(z.string()),
 });

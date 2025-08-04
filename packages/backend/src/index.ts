@@ -33,27 +33,9 @@ const dbManager = new DatabaseManager({
   redis: config.REDIS_URL ? { url: config.REDIS_URL } : undefined
 });
 
-// Initialize Memory Controller Agent
-const memoryController = new MemoryController(dbManager, {
-  l1_max_turns: 20,
-  l1_max_tokens: 4000,
-  l2_significance_threshold: 5.0,
-  l2_emotional_delta_threshold: 0.3,
-  l3_vector_dimension: config.VECTOR_DIMENSION,
-  l3_max_fragments: 1000,
-  default_fusion_weights: {
-    w_L1: 0.4,
-    w_L2: 0.4,
-    w_L3: 0.2
-  },
-  importance_decay_rate: 0.1,
-  access_boost_factor: 1.2,
-  recency_boost_factor: 1.5
-});
-
-// Add to fastify context
+// Add to fastify context (will be initialized in start() function)
 fastify.decorate('db', dbManager);
-fastify.decorate('mca', memoryController);
+let memoryController: MemoryController;
 
 // Setup routes
 await setupRoutes(fastify);
@@ -73,7 +55,7 @@ fastify.get('/health', async () => {
 });
 
 // Graceful shutdown
-const gracefulShutdown = async () => {
+const gracefulShutdown = async (): Promise<void> => {
   console.log('Shutting down gracefully...');
   await dbManager.close();
   await fastify.close();
@@ -84,9 +66,31 @@ process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 
 // Start server
-const start = async () => {
+const start = async (): Promise<void> => {
   try {
     await dbManager.initialize();
+    
+    // Initialize Memory Controller Agent after database is ready
+    memoryController = new MemoryController(dbManager, {
+      l1_max_turns: 20,
+      l1_max_tokens: 4000,
+      l2_significance_threshold: 5.0,
+      l2_emotional_delta_threshold: 0.3,
+      l3_vector_dimension: config.VECTOR_DIMENSION,
+      l3_max_fragments: 1000,
+      default_fusion_weights: {
+        w_L1: 0.4,
+        w_L2: 0.4,
+        w_L3: 0.2
+      },
+      importance_decay_rate: 0.1,
+      access_boost_factor: 1.2,
+      recency_boost_factor: 1.5
+    });
+    
+    // Add MCA to fastify context
+    fastify.decorate('mca', memoryController);
+    
     await fastify.listen({ 
       port: config.PORT, 
       host: '0.0.0.0' 
@@ -98,4 +102,4 @@ const start = async () => {
   }
 };
 
-start();
+void start();

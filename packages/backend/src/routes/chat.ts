@@ -1,9 +1,9 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
-import { ChatRequest, ChatResponse, ChatMessage } from '@cas/types';
+import { ChatRequest, ChatResponse } from '@cas/types';
 import { OllamaService } from '../services/ollama.js';
 import { randomUUID } from 'crypto';
 
-export async function chatRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
+export async function chatRoutes(fastify: FastifyInstance, _options: FastifyPluginOptions): Promise<void> {
   const ollama = new OllamaService();
 
   // Send a chat message
@@ -40,9 +40,9 @@ export async function chatRoutes(fastify: FastifyInstance, options: FastifyPlugi
       const assistantTurn = {
         id: randomUUID(),
         role: 'assistant' as const,
-        content: response.content,
+        content: response.response,
         timestamp: new Date().toISOString(),
-        tokens: response.tokens
+        tokens: await ollama.countTokens(response.response)
       };
       
       // Ingest conversation turns into memory
@@ -56,7 +56,7 @@ export async function chatRoutes(fastify: FastifyInstance, options: FastifyPlugi
       
       const chatResponse: ChatResponse = {
         id: assistantTurn.id,
-        content: response.content,
+        content: response.response,
         session_id: sessionId,
         timestamp: assistantTurn.timestamp,
         metadata: {

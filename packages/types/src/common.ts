@@ -39,5 +39,5 @@ export interface MemoryOperation {
   operation: string;
   timestamp: string;
   duration_ms: number;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
 }

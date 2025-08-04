@@ -4,6 +4,7 @@ import { createClient, RedisClientType } from 'redis';
 import { promises as fs } from 'fs';
 import { dirname } from 'path';
 import { IDatabaseManager } from '@cas/mca/interfaces/database.js';
+import { FaissIndex } from '@cas/types';
 
 interface Neo4jConfig {
   uri: string;
@@ -28,7 +29,7 @@ interface DatabaseConfig {
 
 export class DatabaseManager implements IDatabaseManager {
   private neo4jDriver: Driver | null = null;
-  private faissIndex: any | null = null; // FaissNode type
+  private faissIndex: FaissIndex | null = null;
   public redis: RedisClientType | null = null;
   
   constructor(private config: DatabaseConfig) {}
@@ -83,10 +84,11 @@ export class DatabaseManager implements IDatabaseManager {
       for (const constraint of constraints) {
         try {
           await session.run(constraint);
-        } catch (error: any) {
+        } catch (error: unknown) {
           // Constraint might already exist, that's okay
-          if (!error.message.includes('already exists')) {
-            console.warn('Constraint creation warning:', error.message);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          if (!errorMessage.includes('already exists')) {
+            console.warn('Constraint creation warning:', errorMessage);
           }
         }
       }
@@ -103,9 +105,10 @@ export class DatabaseManager implements IDatabaseManager {
       for (const index of indexes) {
         try {
           await session.run(index);
-        } catch (error: any) {
-          if (!error.message.includes('already exists')) {
-            console.warn('Index creation warning:', error.message);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          if (!errorMessage.includes('already exists')) {
+            console.warn('Index creation warning:', errorMessage);
           }
         }
       }
@@ -126,7 +129,7 @@ export class DatabaseManager implements IDatabaseManager {
         ntotal: () => 0,
         writeIndex: () => Promise.resolve(),
         readIndex: () => Promise.resolve()
-      };
+      } as FaissIndex;
       console.log('✅ Mock FAISS index created');
     } catch (error) {
       console.error('❌ Failed to initialize FAISS:', error);
@@ -157,7 +160,7 @@ export class DatabaseManager implements IDatabaseManager {
       await session.run('RETURN 1');
       await session.close();
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -176,7 +179,7 @@ export class DatabaseManager implements IDatabaseManager {
     return this.neo4jDriver;
   }
 
-  getFaissIndex(): any {
+  getFaissIndex(): FaissIndex {
     if (!this.faissIndex) {
       throw new Error('FAISS index not initialized');
     }

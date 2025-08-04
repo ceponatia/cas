@@ -34,3 +34,18 @@ export const tokenCostSchema = z.object({
   l3_tokens: z.number(),
   estimated_cost: z.number(),
 });
+
+export const memoryOperationSchema = z.object({
+  id: z.string(),
+  type: z.union([
+    z.literal("read"),
+    z.literal("write"),
+    z.literal("update"),
+    z.literal("delete"),
+  ]),
+  layer: z.union([z.literal("L1"), z.literal("L2"), z.literal("L3")]),
+  operation: z.string(),
+  timestamp: z.string(),
+  duration_ms: z.number(),
+  details: z.record(z.string(), z.unknown()),
+});

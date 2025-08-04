@@ -73,3 +73,6 @@ Central orchestrator responsible for:
 - Real-time token cost visualization with interactive weight tuning
 - Local-first development (no API costs)
 - VAD emotional state as first-class queryable citizen of core memory
+
+## Development Commands
+- **`pnpm dev`**: When running this command, it starts watch mode processes that run indefinitely. Always use with timeout or run in background to avoid getting stuck waiting forever.
