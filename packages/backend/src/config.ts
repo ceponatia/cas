@@ -24,10 +24,25 @@ interface Config {
   // Ollama
   OLLAMA_BASE_URL: string;
   OLLAMA_MODEL: string;
+
+  // Prompting
+  PROMPT_TEMPLATE: 'default' | 'roleplay' | 'consistency_maintenance';
+  PROMPT_CONSISTENCY_ENABLED: boolean;
+  PROMPT_CONSISTENCY_TURN_INTERVAL: number; // inject every N assistant turns
+  PROMPT_CONSISTENCY_COOLDOWN_TURNS: number; // minimum turns between injections
+  PROMPT_CONSISTENCY_TIME_MINUTES: number; // minimum minutes between injections
   
   // FAISS
   FAISS_INDEX_PATH: string;
   VECTOR_DIMENSION: number;
+}
+
+function resolvePromptTemplate(): Config['PROMPT_TEMPLATE'] {
+  const pt = process.env.PROMPT_TEMPLATE;
+  if (pt === 'roleplay' || pt === 'consistency_maintenance' || pt === 'default') {
+    return pt;
+  }
+  return 'default';
 }
 
 export const config: Config = {
@@ -42,6 +57,12 @@ export const config: Config = {
   
   OLLAMA_BASE_URL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
   OLLAMA_MODEL: process.env.OLLAMA_MODEL || 'mistral:instruct',
+
+  PROMPT_TEMPLATE: resolvePromptTemplate(),
+  PROMPT_CONSISTENCY_ENABLED: process.env.PROMPT_CONSISTENCY_ENABLED ? process.env.PROMPT_CONSISTENCY_ENABLED === 'true' : true,
+  PROMPT_CONSISTENCY_TURN_INTERVAL: parseInt(process.env.PROMPT_CONSISTENCY_TURN_INTERVAL || '6'),
+  PROMPT_CONSISTENCY_COOLDOWN_TURNS: parseInt(process.env.PROMPT_CONSISTENCY_COOLDOWN_TURNS || '3'),
+  PROMPT_CONSISTENCY_TIME_MINUTES: parseInt(process.env.PROMPT_CONSISTENCY_TIME_MINUTES || '10'),
   
   FAISS_INDEX_PATH: process.env.FAISS_INDEX_PATH || './data/faiss_index',
   VECTOR_DIMENSION: parseInt(process.env.VECTOR_DIMENSION || '1536')

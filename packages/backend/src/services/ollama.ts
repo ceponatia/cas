@@ -1,7 +1,22 @@
 import { Ollama } from 'ollama';
 import { config } from '../config.js';
-import { MemoryRetrievalResult, LLMResponse } from '@cas/types';
+import { MemoryRetrievalResult } from '@cas/types';
 import { encoding_for_model, Tiktoken } from 'tiktoken';
+import { renderTemplate, injectMemory, type PromptTemplateId } from '../prompts/templates.js';
+import { ConsistencyInjector, getConsistencyFragment } from '../prompts/consistency.js';
+
+export interface LLMResponse {
+  response: string;
+  model: string;
+  created_at: string;
+  done: boolean;
+  total_duration?: number;
+  load_duration?: number;
+  prompt_eval_count?: number;
+  prompt_eval_duration?: number;
+  eval_count?: number;
+  eval_duration?: number;
+}
 
 export class OllamaService {
   private ollama: Ollama;
@@ -18,8 +33,8 @@ export class OllamaService {
     }
   }
 
-  async generateResponse(userMessage: string, memoryContext: MemoryRetrievalResult): Promise<LLMResponse> {
-    const prompt = this.constructPrompt(userMessage, memoryContext);
+  async generateResponse(userMessage: string, memoryContext: MemoryRetrievalResult, options?: { templateId?: PromptTemplateId; templateVars?: { char?: string; user?: string; scene?: string }; sessionId?: string }): Promise<LLMResponse> {
+    const prompt = this.constructPrompt(userMessage, memoryContext, { ...options });
     
     try {
       const response = await this.ollama.generate({
@@ -51,56 +66,66 @@ export class OllamaService {
     }
   }
 
-  private constructPrompt(userMessage: string, memoryContext: MemoryRetrievalResult): string {
+  private constructPrompt(userMessage: string, memoryContext: MemoryRetrievalResult, options?: { templateId?: PromptTemplateId; templateVars?: { char?: string; user?: string; scene?: string }; sessionId?: string }): string {
     const { l1, l2, l3 } = memoryContext;
-    
-    let prompt = `You are an AI assistant with access to a sophisticated memory system. Use the provided context to give relevant, personalized responses.
 
-WORKING MEMORY (Recent conversation):
-${l1.turns.map(turn => `${turn.role}: ${turn.content}`).join('\n')}
+    // Build memory context block (existing behavior retained)
+    let memoryBlock = `WORKING MEMORY (Recent conversation):\n` +
+      l1.turns.map(turn => `${turn.role}: ${turn.content}`).join('\n') +
+      `\n\nEPISODIC MEMORY (Characters and facts):\n`;
 
-EPISODIC MEMORY (Characters and facts):
-`;
-
-    // Add character information
     if (l2.characters.length > 0) {
-      prompt += `Characters:\n`;
+      memoryBlock += `Characters:\n`;
       l2.characters.forEach(char => {
-        prompt += `- ${char.name}: VAD emotional state (valence: ${char.emotional_state.valence.toFixed(2)}, arousal: ${char.emotional_state.arousal.toFixed(2)}, dominance: ${char.emotional_state.dominance.toFixed(2)})\n`;
+        memoryBlock += `- ${char.name}: VAD emotional state (valence: ${char.emotional_state.valence.toFixed(2)}, arousal: ${char.emotional_state.arousal.toFixed(2)}, dominance: ${char.emotional_state.dominance.toFixed(2)})\n`;
       });
     }
 
-    // Add facts
     if (l2.facts.length > 0) {
-      prompt += `Facts:\n`;
+      memoryBlock += `Facts:\n`;
       l2.facts.forEach(fact => {
-        prompt += `- ${fact.attribute}: ${fact.current_value} (importance: ${fact.importance_score})\n`;
+        memoryBlock += `- ${fact.attribute}: ${fact.current_value} (importance: ${fact.importance_score})\n`;
       });
     }
 
-    // Add relationships
     if (l2.relationships.length > 0) {
-      prompt += `Relationships:\n`;
+      memoryBlock += `Relationships:\n`;
       l2.relationships.forEach(rel => {
-        prompt += `- ${rel.from_entity} ${rel.relationship_type} ${rel.to_entity} (strength: ${rel.strength})\n`;
+        memoryBlock += `- ${rel.from_entity} ${rel.relationship_type} ${rel.to_entity} (strength: ${rel.strength})\n`;
       });
     }
 
-    // Add semantic archive
     if (l3.fragments.length > 0) {
-      prompt += `\nSEMANTIC ARCHIVE (Relevant insights):\n`;
+      memoryBlock += `\nSEMANTIC ARCHIVE (Relevant insights):\n`;
       l3.fragments.forEach(fragment => {
-        prompt += `- ${fragment.content} (relevance: ${fragment.similarity_score?.toFixed(2)})\n`;
+        memoryBlock += `- ${fragment.content} (relevance: ${fragment.similarity_score?.toFixed(2)})\n`;
       });
     }
 
-    prompt += `\nCurrent user message: ${userMessage}
+    memoryBlock += `\nCurrent user message: ${userMessage}\n\nPlease respond naturally, incorporating relevant information from the memory context above. Be conversational and helpful.\n\nResponse:`;
 
-Please respond naturally, incorporating relevant information from the memory context above. Be conversational and helpful.
+    // Base template selection and rendering
+    const configuredTemplate: PromptTemplateId = config.PROMPT_TEMPLATE;
+    const templateId: PromptTemplateId = options?.templateId ?? configuredTemplate;
+    let base = renderTemplate(templateId, options?.templateVars);
 
-Response:`;
+    // Optionally inject a lightweight consistency fragment for roleplay
+    const decision = ConsistencyInjector.shouldInject({
+      sessionId: options?.sessionId,
+      userMessage,
+      memory: memoryContext,
+      templateId
+    });
+    if (decision.inject) {
+      const frag = getConsistencyFragment(options?.templateVars?.char);
+      const reasonLine = decision.reason ? `((OOC: consistency reason: ${decision.reason}))\n` : '';
+      base = `${reasonLine}${frag}\n\n${base}`;
+    }
 
-    return prompt;
+    // Inject memory block either at {{MEMORY_CONTEXT}} or append to end
+    const fullPrompt = injectMemory(base, memoryBlock);
+
+    return fullPrompt;
   }
 
   async countTokens(text: string): Promise<number> {

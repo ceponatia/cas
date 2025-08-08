@@ -3,12 +3,18 @@ import { ChatRequest, ChatResponse } from '@cas/types';
 import { OllamaService } from '../services/ollama.js';
 import { randomUUID } from 'crypto';
 
+type ChatBody = ChatRequest & {
+  prompt_template?: 'default' | 'roleplay' | 'consistency_maintenance';
+  template_vars?: { char?: string; user?: string; scene?: string };
+};
+
 export async function chatRoutes(fastify: FastifyInstance): Promise<void> {
   const ollama = new OllamaService();
 
   // Send a chat message
-  fastify.post<{ Body: ChatRequest }>('/message', async (request, reply) => {
-    const { message, session_id, fusion_weights } = request.body;
+  fastify.post<{ Body: ChatBody }>('/message', async (request, reply) => {
+    const body: ChatBody = request.body;
+    const { message, session_id, fusion_weights, prompt_template, template_vars } = body;
     const startTime = Date.now();
     
     try {
@@ -25,8 +31,12 @@ export async function chatRoutes(fastify: FastifyInstance): Promise<void> {
         fusion_weights: weights
       });
       
-      // Generate response using Ollama
-      const response = await ollama.generateResponse(message, memoryResult);
+      // Generate response using Ollama with optional template
+      const response = await ollama.generateResponse(message, memoryResult, {
+        templateId: prompt_template,
+        templateVars: template_vars,
+        sessionId
+      });
       
       // Process the conversation turn for memory ingestion
       const userTurn = {

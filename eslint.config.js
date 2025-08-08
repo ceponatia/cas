@@ -38,12 +38,21 @@ export default tseslint.config(
       },
     },
   },
+  // Relax rules for WIP context-modifier package
+  {
+    files: ['packages/context-modifier/**'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
   {
     ignores: [
       '**/dist/',
       '**/node_modules/',
       '**/build/',
       '**/vite.config.ts',
+      // Ignore generated zod types
+      'packages/types/src/zod/**',
     ],
   }
 );

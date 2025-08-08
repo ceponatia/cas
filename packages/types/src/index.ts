@@ -8,3 +8,4 @@ export * from './zod/chat.zod.js';
 export * from './zod/mca.zod.js';
 export * from './zod/common.zod.js';
 export * from './zod/websocket.zod.js';
+export * from './zod/contextModifier.zod.js';
