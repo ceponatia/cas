@@ -7,6 +7,7 @@ export interface WorkingMemoryTurn {
   content: string;
   timestamp: string;
   tokens: number;
+  character_id?: string; // optional for per-character persistent history
 }
 
 export interface WorkingMemory {

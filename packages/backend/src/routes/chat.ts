@@ -69,7 +69,8 @@ export async function chatRoutes(fastify: FastifyInstance): Promise<void> {
         role: 'user' as const,
         content: message,
         timestamp: new Date().toISOString(),
-        tokens: await ollama.countTokens(message)
+        tokens: await ollama.countTokens(message),
+        character_id: character_id
       };
       
       const assistantTurn = {
@@ -77,7 +78,8 @@ export async function chatRoutes(fastify: FastifyInstance): Promise<void> {
         role: 'assistant' as const,
         content: response.response,
         timestamp: new Date().toISOString(),
-        tokens: await ollama.countTokens(response.response)
+        tokens: await ollama.countTokens(response.response),
+        character_id: character_id
       };
       
       // Ingest conversation turns into memory
@@ -86,6 +88,51 @@ export async function chatRoutes(fastify: FastifyInstance): Promise<void> {
         [userTurn],
         sessionId
       );
+      
+      // Persist turns to Neo4j for cross-session history
+      try {
+        const neo4jSession = fastify.db.getNeo4jSession();
+        await neo4jSession.executeWrite(async tx => {
+          // Ensure Session node
+            await tx.run(
+              'MERGE (s:Session {id: $sessionId}) ON CREATE SET s.created_at = timestamp() SET s.last_updated = timestamp()',
+              { sessionId }
+            );
+          // Create user turn
+          await tx.run(
+            `MERGE (t:Turn {id: $id})
+             ON CREATE SET t.role = $role, t.content = $content, t.timestamp = datetime($timestamp), t.tokens = $tokens, t.session_id = $sessionId, t.character_id = $characterId
+             ON MATCH SET t.last_seen = timestamp()
+             WITH t
+             MATCH (s:Session {id: $sessionId})
+             MERGE (t)-[:IN_SESSION]->(s)`,
+            { id: userTurn.id, role: userTurn.role, content: userTurn.content, timestamp: userTurn.timestamp, tokens: userTurn.tokens, sessionId, characterId: character_id || null }
+          );
+          // Create assistant turn
+          await tx.run(
+            `MERGE (t:Turn {id: $id})
+             ON CREATE SET t.role = $role, t.content = $content, t.timestamp = datetime($timestamp), t.tokens = $tokens, t.session_id = $sessionId, t.character_id = $characterId
+             ON MATCH SET t.last_seen = timestamp()
+             WITH t
+             MATCH (s:Session {id: $sessionId})
+             MERGE (t)-[:IN_SESSION]->(s)`,
+            { id: assistantTurn.id, role: assistantTurn.role, content: assistantTurn.content, timestamp: assistantTurn.timestamp, tokens: assistantTurn.tokens, sessionId, characterId: character_id || null }
+          );
+          if (character_id) {
+            await tx.run(
+              'MATCH (c:Character {id: $characterId}) MATCH (t:Turn {id: $turnId}) MERGE (c)-[:PARTICIPATED_IN]->(t)',
+              { characterId: character_id, turnId: assistantTurn.id }
+            );
+            await tx.run(
+              'MATCH (c:Character {id: $characterId}) MATCH (t:Turn {id: $turnId}) MERGE (c)-[:PARTICIPATED_IN]->(t)',
+              { characterId: character_id, turnId: userTurn.id }
+            );
+          }
+        });
+        await neo4jSession.close();
+      } catch (persistErr) {
+        fastify.log.error({ err: persistErr }, 'Failed to persist turns');
+      }
       
       const processingTime = Date.now() - startTime;
       
@@ -161,6 +208,26 @@ export async function chatRoutes(fastify: FastifyInstance): Promise<void> {
         error: 'Failed to fetch sessions',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
+    }
+  });
+
+  // Character aggregated history
+  fastify.get<{ Params: { characterId: string } }>('/character-history/:characterId', async (request, reply) => {
+    const { characterId } = request.params;
+    try {
+      const session = fastify.db.getNeo4jSession();
+      const result = await session.executeRead(tx => tx.run(
+        `MATCH (c:Character {id: $characterId})-[:PARTICIPATED_IN]->(t:Turn)-[:IN_SESSION]->(s:Session)
+         RETURN t { .id, .role, .content, timestamp: toString(t.timestamp), .tokens, character_id: t.character_id, session_id: s.id } AS turn
+         ORDER BY t.timestamp ASC`,
+        { characterId }
+      ));
+      await session.close();
+      const turns = result.records.map(r => r.get('turn'));
+      return { character_id: characterId, turns };
+    } catch (err) {
+      fastify.log.error({ err }, 'Failed to fetch character history');
+      reply.status(500).send({ error: 'Failed to fetch character history' });
     }
   });
 }

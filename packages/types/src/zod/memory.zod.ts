@@ -19,6 +19,7 @@ export const workingMemoryTurnSchema = z.object({
   content: z.string(),
   timestamp: z.string(),
   tokens: z.number(),
+  character_id: z.string().optional(),
 });
 
 export const workingMemorySchema = z.object({
