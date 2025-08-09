@@ -37,13 +37,8 @@ export class L3VectorMemory {
     const operations: MemoryOperation[] = [];
 
     try {
-      // Generate summary/insight from the turn
       const summary = this.generateSummary(turn, eventDetection);
-      
-      // Create embedding (mock implementation for now)
       const embedding = await this.generateEmbedding(summary);
-      
-      // Create vector fragment
       const fragment: VectorMemoryFragment = {
         id: `vec:${crypto.randomUUID()}`,
         embedding,
@@ -61,14 +56,9 @@ export class L3VectorMemory {
         }
       };
 
-      // Add to FAISS index
-      const faissIndex = this.dbManager.getFaissIndex();
+      const faissIndex = this.dbManager.getFaissIndex() as { add(v: number[][]): void };
       faissIndex.add([embedding]);
-      
-      // Store fragment metadata
       this.fragments.set(fragment.id, fragment);
-      
-      // Save index
       await this.dbManager.saveFaissIndex();
 
       operations.push({
@@ -99,67 +89,44 @@ export class L3VectorMemory {
   async retrieve(query: MemoryRetrievalQuery): Promise<L3RetrievalResult> {
     try {
       if (this.fragments.size === 0) {
-        return {
-          fragments: [],
-          relevance_score: 0,
-          token_count: 0
-        };
+        return { fragments: [], relevance_score: 0, token_count: 0 };
       }
-
-      // Generate query embedding
       const queryEmbedding = await this.generateEmbedding(query.query_text);
-      
-      // Search FAISS index
-      const faissIndex = this.dbManager.getFaissIndex();
+      const faissIndex = this.dbManager.getFaissIndex() as { ntotal(): number; search(v: number[][], k: number): { distances: number[][]; labels: number[][] } };
       const k = Math.min(10, this.fragments.size);
-      
       if (faissIndex.ntotal() === 0) {
-        return {
-          fragments: [],
-          relevance_score: 0,
-          token_count: 0
-        };
+        return { fragments: [], relevance_score: 0, token_count: 0 };
       }
-
       const searchResult = faissIndex.search([queryEmbedding], k);
-      
-      // Convert results to fragments with similarity scores
       const relevantFragments: VectorMemoryFragment[] = [];
       const fragmentArray = Array.from(this.fragments.values());
-      
       for (let i = 0; i < searchResult.distances[0].length; i++) {
         const index = searchResult.labels[0][i];
         const distance = searchResult.distances[0][i];
-        
         if (index < fragmentArray.length) {
           const fragment = { ...fragmentArray[index] };
-          
-          // Convert distance to similarity score (lower distance = higher similarity)
-          fragment.similarity_score = Math.max(0, 1 - distance / 2); // Normalize to 0-1
-          
-          // Update access metrics
+          fragment.similarity_score = Math.max(0, 1 - distance / 2);
           fragment.metadata.last_accessed = new Date().toISOString();
           fragment.metadata.access_count += 1;
-          
           relevantFragments.push(fragment);
         }
       }
-
-      // Sort by similarity score
       relevantFragments.sort((a, b) => (b.similarity_score || 0) - (a.similarity_score || 0));
 
-      // Calculate overall relevance score
-      const avgSimilarity = relevantFragments.reduce((sum, frag) => sum + (frag.similarity_score || 0), 0) / relevantFragments.length;
-      
-      // Estimate token count
-      const tokenCount = this.estimateL3TokenCount(relevantFragments);
+      // Optional character scoping: keep only fragments tagged with character id
+      let scoped = relevantFragments;
+      if (query.character_id) {
+        const tag = query.character_id.toLowerCase();
+        scoped = relevantFragments.filter(f => f.metadata.tags.some(t => t.toLowerCase().includes(tag)));
+      }
 
+      const avgSimilarity = scoped.reduce((sum, frag) => sum + (frag.similarity_score || 0), 0) / (scoped.length || 1);
+      const tokenCount = this.estimateL3TokenCount(scoped);
       return {
-        fragments: relevantFragments,
+        fragments: scoped,
         relevance_score: avgSimilarity || 0,
         token_count: tokenCount
       };
-
     } catch (error) {
       console.error('L3 retrieval error:', error);
       return {
@@ -264,7 +231,7 @@ export class L3VectorMemory {
    * Public API methods
    */
   async inspect(): Promise<unknown> {
-    const faissIndex = this.dbManager.getFaissIndex();
+    const faissIndex = this.dbManager.getFaissIndex() as { ntotal(): number };
     
     const contentTypes = {
       summary: 0,

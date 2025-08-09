@@ -2,39 +2,64 @@ import { FastifyInstance } from 'fastify';
 import { ChatRequest, ChatResponse } from '@cas/types';
 import { OllamaService } from '../services/ollama.js';
 import { randomUUID } from 'crypto';
+import { CharacterRegistry } from '../services/character-registry.js';
 
 type ChatBody = ChatRequest & {
   prompt_template?: 'default' | 'roleplay' | 'consistency_maintenance';
   template_vars?: { char?: string; user?: string; scene?: string };
+  character_id?: string;
 };
 
 export async function chatRoutes(fastify: FastifyInstance): Promise<void> {
   const ollama = new OllamaService();
+  const characterRegistry = CharacterRegistry.getInstance();
 
   // Send a chat message
   fastify.post<{ Body: ChatBody }>('/message', async (request, reply) => {
     const body: ChatBody = request.body;
-    const { message, session_id, fusion_weights, prompt_template, template_vars } = body;
+    const { message, session_id, fusion_weights, prompt_template, template_vars, character_id } = body;
     const startTime = Date.now();
     
     try {
       // Use provided session_id or create new one
-      const sessionId = session_id || randomUUID();
+      const baseSessionId = session_id || randomUUID();
+      const sessionId = character_id ? `${baseSessionId}:${character_id}` : baseSessionId;
       
       // Use provided fusion weights or defaults
       const weights = fusion_weights || fastify.mca.config.default_fusion_weights;
+
+      // Character handling
+      let effectiveTemplate = prompt_template;
+      const vars = { ...template_vars };
+      if (character_id) {
+        const profile = characterRegistry.get(character_id);
+        if (profile) {
+          if (!effectiveTemplate) effectiveTemplate = 'roleplay';
+          const salientAttributes = (profile.attributes || [])
+            .filter((a: { salience?: number }) => (a.salience ?? 0) >= 0.6)
+            .slice(0, 8);
+          const attrText = salientAttributes.map((a: { key: string; value: unknown }) => {
+            type Scalar = { value: unknown }
+            const raw = a.value as Scalar | unknown;
+            const val = typeof raw === 'object' && raw !== null && 'value' in (raw as Scalar) ? (raw as Scalar).value : a.value;
+            return `${a.key.replace(/_/g,' ')}: ${val}`;
+          }).join('; ');
+          vars.char = `${profile.name}${attrText ? ' | ' + attrText : ''}`;
+        }
+      }
       
-      // Retrieve relevant context from memory layers
+      // Retrieve relevant context from memory layers (scoped by session + character)
       const memoryResult = await fastify.mca.retrieveRelevantContext({
         query_text: message,
         session_id: sessionId,
-        fusion_weights: weights
+        fusion_weights: weights,
+        character_id: character_id
       });
       
       // Generate response using Ollama with optional template
       const response = await ollama.generateResponse(message, memoryResult, {
-        templateId: prompt_template,
-        templateVars: template_vars,
+        templateId: effectiveTemplate,
+        templateVars: vars,
         sessionId
       });
       
@@ -80,7 +105,7 @@ export async function chatRoutes(fastify: FastifyInstance): Promise<void> {
           processing_time: processingTime,
           memory_retrieval: memoryResult,
           memory_operations: ingestionResult.operations_performed,
-          emotional_state_changes: ingestionResult.emotional_changes.map(change => ({
+          emotional_state_changes: ingestionResult.emotional_changes.map((change: { character_id: string; previous_vad: unknown; new_vad: unknown; trigger: string }) => ({
             character_id: change.character_id,
             character_name: change.character_id.replace('character:', ''),
             previous_state: change.previous_vad,

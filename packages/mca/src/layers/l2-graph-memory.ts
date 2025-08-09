@@ -132,16 +132,28 @@ export class L2GraphMemory {
           retrieveRelevantRelationships(tx, query)
         ]);
 
+        // Optional character scoping (client may send character_id)
+        let scopedCharacters = characters;
+        let scopedFacts = facts;
+        let scopedRelationships = relationships;
+        if (query.character_id) {
+          // Simple filter heuristic: keep items mentioning character id or name
+          const cid = query.character_id.toLowerCase();
+          scopedCharacters = characters.filter(c => c.id.toLowerCase().includes(cid) || c.name.toLowerCase().includes(cid));
+          scopedFacts = facts.filter(f => f.entity.toLowerCase().includes(cid));
+          scopedRelationships = relationships.filter(r => r.from_entity.toLowerCase().includes(cid) || r.to_entity.toLowerCase().includes(cid));
+        }
+
         // Calculate overall relevance score
-        const relevanceScore = calculateL2RelevanceScore(characters, facts, relationships, query);
+        const relevanceScore = calculateL2RelevanceScore(scopedCharacters, scopedFacts, scopedRelationships);
         
         // Estimate token count
-        const tokenCount = estimateL2TokenCount(characters, facts, relationships);
+        const tokenCount = estimateL2TokenCount(scopedCharacters, scopedFacts, scopedRelationships);
 
         return {
-          characters,
-          facts,
-          relationships,
+          characters: scopedCharacters,
+          facts: scopedFacts,
+          relationships: scopedRelationships,
           relevance_score: relevanceScore,
           token_count: tokenCount
         };
@@ -151,14 +163,6 @@ export class L2GraphMemory {
     }
   }
 
-
-
-
-
-
-
-
-
   // Public API methods
   async getAllCharacters(): Promise<Character[]> {
     const session = this.driver.session();
@@ -166,7 +170,7 @@ export class L2GraphMemory {
       return await session.executeRead(async (tx: ManagedTransaction) => {
         const result = await tx.run('MATCH (c:Character) RETURN c ORDER BY c.name');
         return result.records.map((record: { get(key: string): unknown }) => {
-          const node = record.get('c');
+          const node = record.get('c') as { properties: { id: string; name: string; emotional_state?: { valence: number; arousal: number; dominance: number }; created_at: { toString(): string }; last_updated?: { toString(): string } } };
           return mapNodeToCharacter(node);
         });
       });

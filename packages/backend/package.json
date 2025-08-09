@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "seed:characters": "tsx src/scripts/seed-characters.ts"
   },
   "dependencies": {
     "@cas/mca": "workspace:*",

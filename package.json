@@ -13,7 +13,8 @@
     "docker:down": "docker-compose down",
     "lint": "eslint . --ext .ts,.tsx --max-warnings=0",
     "prepare": "husky install",
-    "generate:zod": "pnpm --filter @cas/types generate:zod"
+    "generate:zod": "pnpm --filter @cas/types generate:zod",
+    "seed:characters": "pnpm --filter @cas/backend run seed:characters"
   },
   "keywords": [
     "ai",
@@ -40,5 +41,8 @@
     "*.{ts,tsx}": [
       "eslint --fix"
     ]
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

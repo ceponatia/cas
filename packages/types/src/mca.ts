@@ -85,6 +85,7 @@ export interface MemoryRetrievalQuery {
   };
   max_tokens?: number;
   min_relevance_threshold?: number;
+  character_id?: string; // Optional character scope for retrieval (L2/L3 filtering)
 }
 
 

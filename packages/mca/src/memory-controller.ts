@@ -8,12 +8,7 @@ import {
   ChatSession,
   Character,
   FactNode,
-  TokenCost,
-  SearchOptions,
-  MemoryInspection,
-  EmotionalHistoryEntry,
-  MemoryStatistics,
-  PruneResult
+  TokenCost
 } from '@cas/types';
 // DatabaseManager will be passed as a parameter
 import { L1WorkingMemory } from './layers/l1-working-memory.js';
@@ -118,28 +113,21 @@ export class MemoryController {
    * READ PATH: Retrieve relevant context using weighted memory fusion
    */
   async retrieveRelevantContext(query: MemoryRetrievalQuery): Promise<MemoryRetrievalResult> {
-    
     try {
-      // Retrieve from each layer in parallel
       const [l1Result, l2Result, l3Result] = await Promise.all([
         this.l1.retrieve(query),
         this.l2.retrieve(query),
         this.l3.retrieve(query)
       ]);
-
-      // Apply weighted fusion to combine results
       const fusedResult = this.fusion.combineResults(
         l1Result,
         l2Result,
         l3Result,
         query.fusion_weights
       );
-
       return fusedResult;
-
     } catch (error) {
       console.error('Memory retrieval failed:', error);
-      // Return empty results on error
       return {
         l1: { turns: [], relevance_score: 0, token_count: 0 },
         l2: { characters: [], facts: [], relationships: [], relevance_score: 0, token_count: 0 },
@@ -176,33 +164,30 @@ export class MemoryController {
     return this.l2.getAllCharacters();
   }
 
-  async getCharacterEmotionalHistory(characterId: string, limit: number): Promise<EmotionalHistoryEntry[]> {
-    return this.l2.getEmotionalHistory(characterId, limit);
+  async getCharacterEmotionalHistory(): Promise<unknown[]> {
+    return this.l2.getEmotionalHistory();
   }
 
   async getFactWithHistory(factId: string): Promise<FactNode | null> {
     return this.l2.getFactWithHistory(factId);
   }
 
-  async searchMemory(query: string, options: SearchOptions): Promise<MemoryRetrievalResult> {
-    // Simple search across all layers
+  async searchMemory(query: string, options: { limit: number }): Promise<MemoryRetrievalResult> {
     const searchQuery: MemoryRetrievalQuery = {
       query_text: query,
       session_id: 'search',
       fusion_weights: this.config.default_fusion_weights,
       max_tokens: options.limit * 100
     };
-
     return await this.retrieveRelevantContext(searchQuery);
   }
 
-  async inspectMemoryState(): Promise<MemoryInspection> {
+  async inspectMemoryState(): Promise<unknown> {
     const [l1State, l2State, l3State] = await Promise.all([
       this.l1.inspect(),
       this.l2.inspect(),
       this.l3.inspect()
     ]);
-
     return {
       l1_working_memory: l1State,
       l2_graph_memory: l2State,
@@ -212,24 +197,23 @@ export class MemoryController {
     };
   }
 
-  async getMemoryStatistics(): Promise<MemoryStatistics> {
+  async getMemoryStatistics(): Promise<unknown> {
     const [l1Stats, l2Stats, l3Stats] = await Promise.all([
       this.l1.getStatistics(),  
       this.l2.getStatistics(),
       this.l3.getStatistics()
     ]);
-
+    interface L1Stats { total_sessions: number }
     return {
       l1_stats: l1Stats,
       l2_stats: l2Stats,
       l3_stats: l3Stats,
-      total_sessions: l1Stats.total_sessions,
+      total_sessions: (l1Stats as L1Stats).total_sessions,
       timestamp: new Date().toISOString()
     };
   }
 
-  async pruneMemory(): Promise<PruneResult> {
-    // Will be implemented in Phase 3
+  async pruneMemory(): Promise<{ message: string }> {
     return { message: 'Pruning not yet implemented' };
   }
 
