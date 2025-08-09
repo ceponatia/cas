@@ -76,6 +76,7 @@ export const memoryRetrievalQuerySchema = z.object({
   }),
   max_tokens: z.number().optional(),
   min_relevance_threshold: z.number().optional(),
+  character_id: z.string().optional(),
 });
 
 export const conflictResolutionPolicySchema = z.object({
